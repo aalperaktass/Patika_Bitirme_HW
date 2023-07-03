@@ -1,0 +1,187 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_USERS 100
+
+typedef struct {
+    char name[100];
+    int accountNumber;
+    float balance;
+} User;
+
+User users[MAX_USERS];
+int userCount = 0;
+
+void registerUser() {
+    if (userCount == MAX_USERS) {
+        printf("Hesap sınırına ulaşıldı.\n");
+        return;
+    }
+
+    User newUser;
+
+    printf("Adınız: ");
+    scanf("%s", newUser.name);
+
+    printf("Hesap numarası: ");
+    scanf("%d", &newUser.accountNumber);
+
+    printf("Başlangıç bakiyesi: ");
+    scanf("%f", &newUser.balance);
+
+    users[userCount++] = newUser;
+
+    printf("Hesap oluşturuldu.\n");
+}
+
+void deposit() {
+    int accountNumber;
+    float amount;
+
+    printf("Hesap numaranızı girin: ");
+    scanf("%d", &accountNumber);
+
+    int i = 0;
+    while (i < userCount) {
+        if (users[i].accountNumber == accountNumber) {
+            printf("Yatırmak istediğiniz miktarı girin: ");
+            scanf("%f", &amount);
+
+            users[i].balance += amount;
+
+            printf("Hesaba para yatırıldı.\n");
+            return;
+        }
+        i++;
+    }
+
+    printf("Hesap bulunamadı.\n");
+}
+
+void withdraw() {
+    int accountNumber;
+    float amount;
+
+    printf("Hesap numaranızı girin: ");
+    scanf("%d", &accountNumber);
+
+    int i = 0;
+    while (i < userCount) {
+        if (users[i].accountNumber == accountNumber) {
+            printf("Çekmek istediğiniz miktarı girin: ");
+            scanf("%f", &amount);
+
+            if (amount > users[i].balance) {
+                printf("Yetersiz bakiye.\n");
+                return;
+            }
+
+            users[i].balance -= amount;
+
+            printf("Hesaptan para çekildi.\n");
+            return;
+        }
+        i++;
+    }
+
+    printf("Hesap bulunamadı.\n");
+}
+
+void displayBalance() {
+    int accountNumber;
+
+    printf("Hesap numaranızı girin: ");
+    scanf("%d", &accountNumber);
+
+    int i = 0;
+    while (i < userCount) {
+        if (users[i].accountNumber == accountNumber) {
+            printf("Bakiyeniz: %.2f\n", users[i].balance);
+            return;
+        }
+        i++;
+    }
+
+    printf("Hesap bulunamadı.\n");
+}
+
+void saveDataToFile() {
+    FILE *file = fopen("data.txt", "w");
+    if (file == NULL) {
+        printf("Dosya oluşturulamadı.\n");
+        return;
+    }
+
+    int i = 0;
+    while (i < userCount) {
+        fprintf(file, "%s %d %.2f\n", users[i].name, users[i].accountNumber, users[i].balance);
+        i++;
+    }
+
+    fclose(file);
+
+    printf("Veriler dosyaya kaydedildi.\n");
+}
+
+void loadDataFromFile() {
+    FILE *file = fopen("data.txt", "r");
+    if (file == NULL) {
+        printf("Dosya bulunamadı.\n");
+        return;
+    }
+
+    userCount = 0;
+    while (fscanf(file, "%s %d %f", users[userCount].name, &users[userCount].accountNumber, &users[userCount].balance) == 3) {
+        userCount++;
+    }
+
+    fclose(file);
+
+    printf("Veriler dosyadan yüklendi.\n");
+}
+
+void printMenu() {
+    printf("1. Yeni hesap oluştur\n");
+    printf("2. Hesap bilgilerini görüntüle\n");
+    printf("3. Para yatır\n");
+    printf("4. Para çek\n");
+    printf("5. Çıkış\n");
+    printf("Seçiminizi yapın: ");
+}
+
+int main() {
+    int choice;
+
+    loadDataFromFile();
+
+    while (1) {
+        printMenu();
+        scanf("%d", &choice);
+
+        if (choice == 5) {
+            saveDataToFile();
+            break;
+        }
+
+        switch (choice) {
+            case 1:
+                registerUser();
+                break;
+            case 2:
+                displayBalance();
+                break;
+            case 3:
+                deposit();
+                break;
+            case 4:
+                withdraw();
+                break;
+            default:
+                printf("Geçersiz seçim.\n");
+                break;
+        }
+    }
+
+    return 0;
+}
